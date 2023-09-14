@@ -1,58 +1,52 @@
-/** The employees table */
-DROP TABLE IF EXISTS employees CASCADE;
-
-CREATE TABLE employees (
-  "id" SERIAL PRIMARY KEY,
-  "first_name" text,
-  "last_name" text,
-  "department_name" text,
-  "employment_type" text,
-  "job_position" text,
-  "created_at" TIMESTAMP DEFAULT NOW()
-);
-
-INSERT INTO employees
-(first_name, last_name, department_name, employment_type, job_position) 
-VALUES
-('John', 'Doe', 'accounting', 'full-time', 'manager'),
-('Joy', 'Rubeth', 'ict', 'full-time', 'manager'),
-('Emmanuel', 'Onwukwe', 'maintenance', 'part-time', 'manager');
-
-/** The departments table */
+/** Drop tables if exists before creating new ones */
+DROP TABLE IF EXISTS job_positions CASCADE;
+DROP TABLE IF EXISTS employment_types CASCADE;
 DROP TABLE IF EXISTS departments CASCADE;
-
-CREATE TABLE departments (
-  "id" SERIAL PRIMARY KEY,
-  "name" text,
-  "created_at" TIMESTAMP DEFAULT NOW()
-);
-
-INSERT INTO departments (name) VALUES ('accounting'), ('ict'), ('maintenance'), ('hrm');
+DROP TABLE IF EXISTS employees CASCADE;
+DROP TABLE IF EXISTS payrolls CASCADE;
+DROP TABLE IF EXISTS leaves CASCADE;
+DROP TABLE IF EXISTS training_sessions CASCADE;
+DROP TABLE IF EXISTS attendance_records CASCADE;
 
 /** The job_positions table */
-DROP TABLE IF EXISTS job_positions CASCADE;
-
 CREATE TABLE job_positions (
   "id" SERIAL PRIMARY KEY,
   "position" text,
   "created_at" TIMESTAMP DEFAULT NOW()
 );
 
-INSERT INTO job_positions (position) VALUES ('chief technology officer'), ('manager'), ('Marketing manager');
-
 /** The employment_types table */
-DROP TABLE IF EXISTS employment_types CASCADE;
-
 CREATE TABLE employment_types (
   "id" SERIAL PRIMARY KEY,
   "type" text,
   "created_at" TIMESTAMP DEFAULT NOW()
 );
 
-INSERT INTO employment_types (type) VALUES ('full-time'), ('part-time');
+/** The departments table */
+CREATE TABLE departments (
+  "id" SERIAL PRIMARY KEY,
+  "name" text,
+  "created_at" TIMESTAMP DEFAULT NOW()
+);
+
+
+
+/** The employees table */
+CREATE TABLE employees (
+  "id" SERIAL PRIMARY KEY,
+  "first_name" text,
+  "last_name" text,
+  "department_id" INT,
+  "employment_type_id" int,
+  "job_position_id" int,
+  CONSTRAINT fk_departments FOREIGN KEY (department_id) REFERENCES departments (id),
+  CONSTRAINT fk_employment_types FOREIGN KEY (employment_type_id) REFERENCES employment_types (id),
+  CONSTRAINT fk_job_positions FOREIGN KEY (job_position_id) REFERENCES job_positions (id),
+  "created_at" TIMESTAMP DEFAULT NOW()
+);
+
 
 /** The payrolls table */
-DROP TABLE IF EXISTS payrolls CASCADE;
 
 CREATE TABLE payrolls (
   "id" SERIAL PRIMARY KEY,
@@ -60,59 +54,56 @@ CREATE TABLE payrolls (
   "amount" text,
   "period_start" TIMESTAMP,
   "period_end" TIMESTAMP,
-  "created_at" TIMESTAMP DEFAULT NOW()
+  "created_at" TIMESTAMP DEFAULT NOW(),
+   CONSTRAINT fk_employees FOREIGN KEY (employee_id) REFERENCES employees (id)
 );
 
-INSERT INTO employment_types (employee_id, amount, period_start, period_end) VALUES 
-(1, 10000, "01-06-2023 10:01:52", "30-06-2023 10:01:52"),
-(2, 50000, "20-06-2023 01:01:50", "20-07-2023 01:01:50"),
-(3, 1000, "10-05-2023 10:00:00", "10-05-2023 11:00:00");
-
 /** The leaves table */
-DROP TABLE IF EXISTS leaves CASCADE;
-
 CREATE TABLE leaves (
   "id" SERIAL PRIMARY KEY,
   "employee_id" integer,
-  "created_at" TIMESTAMP DEFAULT NOW()
+  "created_at" TIMESTAMP DEFAULT NOW(),
+  CONSTRAINT fk_employees FOREIGN KEY (employee_id) REFERENCES employees (id)
 );
 
-INSERT INTO leaves VALUES (1), (2), (1), (1);
-
 /** The training_sessions table */
-DROP TABLE IF EXISTS training_sessions CASCADE;
-
 CREATE TABLE training_sessions (
   "id" SERIAL PRIMARY KEY,
   "employee_id" integer,
-  "created_at" TIMESTAMP DEFAULT NOW()
+  "created_at" TIMESTAMP DEFAULT NOW(),
+    CONSTRAINT fk_employees FOREIGN KEY (employee_id) REFERENCES employees (id)
 );
 
-INSERT INTO training_sessions VALUES (1), (2), (1), (1);
-
 /** The attendance_records table */
-DROP TABLE IF EXISTS attendance_records CASCADE;
-
 CREATE TABLE attendance_records (
   "id" SERIAL PRIMARY KEY,
   "employee_id" integer,
-  "created_at" TIMESTAMP DEFAULT NOW()
+  "created_at" TIMESTAMP DEFAULT NOW(),
+    CONSTRAINT fk_employees FOREIGN KEY (employee_id) REFERENCES employees (id)
 );
 
-INSERT INTO training_sessions VALUES (1), (2), (1), (1);
 
+/** Insert dummy data to the tables */
+INSERT INTO job_positions (position) VALUES ('chief technology officer'), ('manager'), ('Marketing manager');
 
-/** Alter the tables and add the foreign keys for the relations */
-ALTER TABLE "employees" ADD FOREIGN KEY ("job_position") REFERENCES "job_positions" ("position");
+INSERT INTO employment_types (type) VALUES ('full-time'), ('part-time');
 
-ALTER TABLE "employees" ADD FOREIGN KEY ("employment_type") REFERENCES "employment_types" ("type");
+INSERT INTO departments (name) VALUES ('accounting'), ('ict'), ('maintenance'), ('hrm');
 
-ALTER TABLE "leaves" ADD FOREIGN KEY ("employee_id") REFERENCES "employees" ("id");
+INSERT INTO employees
+(first_name, last_name, department_id, employment_type_id, job_position_id) 
+VALUES
+('John', 'Doe', 1, 1, 1),
+('Joy', 'Rubeth', 2, 1, 2),
+('Emmanuel', 'Onwukwe', 1, 2, 3);
 
-ALTER TABLE "attendance_records" ADD FOREIGN KEY ("employee_id") REFERENCES "employees" ("id");
+INSERT INTO payrolls (employee_id, amount, period_start, period_end) VALUES 
+(1, 10000, '02-06-2023 10:01:52', '02-07-2023 10:01:52'),
+(2, 1000, '02-06-2023 10:01:52', '02-06-2023 10:01:52'),
+(3, 50000, '02-06-2023 10:01:52', '02-06-2023 10:01:52');
 
-ALTER TABLE "employees" ADD FOREIGN KEY ("department_name") REFERENCES "departments" ("name");
+INSERT INTO leaves (employee_id) VALUES (1), (2), (1), (1);
 
-ALTER TABLE "training_sessions" ADD FOREIGN KEY ("employee_id") REFERENCES "employees" ("id");
+INSERT INTO training_sessions (employee_id) VALUES (1), (2), (1), (1);
 
-ALTER TABLE "payrolls" ADD FOREIGN KEY ("employee_id") REFERENCES "employees" ("id");
+INSERT INTO attendance_records (employee_id) VALUES (1), (2), (1), (1);
