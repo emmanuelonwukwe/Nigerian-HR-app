@@ -57,7 +57,7 @@ async function show_employee_payroll(employee_id, period_start, period_end) {
     </tbody>
   </table>`;
 
-  console.table({name: "mark", "age": 45});
+  //console.table(table);
   return table;
 }
 
